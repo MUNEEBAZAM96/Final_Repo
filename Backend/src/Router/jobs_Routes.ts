@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   discoverJobs,
   getJobMatches,
+  getJobSuggestions,
   markAsApplied,
   updateApplicationStatus,
   toggleSaveJob,
@@ -16,6 +17,9 @@ router.use(authenticateToken)
 
 // Discover and match jobs
 router.post('/discover', discoverJobs)
+
+// Get job suggestions with extracted skills
+router.get('/suggestions', getJobSuggestions)
 
 // Get user's job matches
 router.get('/matches', getJobMatches)

@@ -62,5 +62,50 @@ export const authenticateToken = async (
   }
 }
 
+// Optional authentication middleware - doesn't fail if no token, but attaches user if token is valid
+export const optionalAuthenticate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // No token provided - continue without authentication
+      return next()
+    }
+
+    const token = authHeader.split(' ')[1]
+
+    // Verify token
+    let decoded: JwtPayload
+    try {
+      decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload
+    } catch (err) {
+      // Invalid token - continue without authentication
+      return next()
+    }
+
+    // Find user
+    const user = await User.findById(decoded.userId)
+
+    if (user) {
+      // Attach user info to request if found
+      ;(req as any).user = {
+        id: user._id.toString(),
+        email: user.email,
+        fullName: user.fullName,
+      }
+    }
+
+    next()
+  } catch (error) {
+    // On error, continue without authentication
+    console.error('Optional auth middleware error:', error)
+    next()
+  }
+}
+
 // Alias for backward compatibility
 export const authenticate = authenticateToken

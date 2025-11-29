@@ -15,7 +15,8 @@ import { useState } from 'react'
 const navLinks = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/resume', label: 'Resume', icon: FileText },
-  { path: '/jobs', label: 'Jobs', icon: Briefcase },
+  { path: '/jobs', label: 'Job Matches', icon: Briefcase },
+  { path: '/jobs/suggestions', label: 'Job Suggestions', icon: Briefcase },
   { path: '/interview', label: 'Interview', icon: MessageSquare },
 ]
 

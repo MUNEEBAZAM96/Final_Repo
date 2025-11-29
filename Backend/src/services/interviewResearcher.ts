@@ -1,143 +1,169 @@
 import { geminiModel } from '../utils/geminiClient.ts'
 
-export interface InterviewQuestion {
-  question: string
-  type: 'technical' | 'behavioral' | 'system design'
-  difficulty: 'easy' | 'medium' | 'hard'
-  topic: string
-  modelAnswer: string
-  hints: string[]
+/**
+ * Interface matching the exact Gemini API response format
+ */
+export interface GeminiInterviewResponse {
+  companyResearchSummary: string
+  questions: Array<{
+    category: string
+    question: string
+    answer: string
+    reason: string
+  }>
 }
 
+/**
+ * Interface for the service return value
+ */
 export interface InterviewPrep {
   company: string
   role: string
   technologies: string[]
-  questions: InterviewQuestion[]
+  questions: Array<{
+    category: string
+    question: string
+    answer: string
+    reason: string
+  }>
   companyInfo?: string
   roleRequirements?: string
 }
 
 /**
- * Research company and role information using Gemini
+ * Generate interview preparation questions using Gemini API
+ * Uses the exact prompt format specified in requirements
  */
-const researchCompanyAndRole = async (
+export const generateInterviewPrep = async (
   company: string,
-  role: string
-): Promise<{ companyInfo: string; roleRequirements: string }> => {
+  role: string,
+  technologies: string[]
+): Promise<InterviewPrep> => {
   try {
-    const prompt = `
-    Research the following company and role:
-    
-    Company: ${company}
-    Role: ${role}
-    
-    Provide:
-    1. Brief company information (what they do, culture, recent news)
-    2. Typical requirements and expectations for this role
-    
-    Keep responses concise (2-3 paragraphs each).
-    
-    Respond in JSON format:
-    {
-      "companyInfo": "...",
-      "roleRequirements": "..."
-    }
-    `
+    // Build the exact prompt as specified in requirements
+    const prompt = `You are an expert technical interviewer and job research assistant.
 
+Your job is to generate realistic and highly relevant interview preparation content.
+
+Analyze:
+- Company: ${company}
+- Role: ${role}
+- Technologies: ${technologies.join(', ')}
+
+Your output MUST be valid JSON only:
+{
+  "companyResearchSummary": "",
+  "questions": [
+    {
+      "category": "",
+      "question": "",
+      "answer": "",
+      "reason": ""
+    }
+  ]
+}
+
+Rules:
+- If company is well-known → generate company-specific interview questions and insights
+- If company is NOT found → generate realistic dummy company insights + questions
+- Include at least:
+  - 6 technical questions
+  - 4 behavioral questions
+- Every question must include:
+  - A detailed model answer
+  - A reasoning explanation for why the question is relevant
+- Tailor questions based on technologies and role
+- The answers must show deep multi-step reasoning
+- DO NOT include extra text outside JSON`
+
+    // Call Gemini API
     const result = await geminiModel.generateContent(prompt)
     const response = await result.response
     let text = response.text()
 
     // Clean up markdown code blocks if present
     text = text.replace(/```json/g, '').replace(/```/g, '').trim()
+    
+    // Remove any leading/trailing whitespace and newlines
+    text = text.trim()
 
-    const data = JSON.parse(text) as { companyInfo: string; roleRequirements: string }
-
-    return {
-      companyInfo: data.companyInfo || 'Company information not available',
-      roleRequirements: data.roleRequirements || 'Role requirements not available',
+    // Parse JSON response
+    let parsedData: GeminiInterviewResponse
+    try {
+      parsedData = JSON.parse(text) as GeminiInterviewResponse
+    } catch (parseError) {
+      // If JSON parsing fails, try to extract JSON from the response
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        parsedData = JSON.parse(jsonMatch[0]) as GeminiInterviewResponse
+      } else {
+        throw new Error('Invalid JSON response from Gemini API')
+      }
     }
-  } catch (error) {
-    console.error('Error researching company/role with Gemini:', error)
-    return {
-      companyInfo: 'Company information not available',
-      roleRequirements: 'Role requirements not available',
-    }
-  }
-}
 
-/**
- * Generate interview questions using Gemini
- */
-export const generateInterviewPrep = async (
-  company: string,
-  role: string,
-  technologies: string[],
-  userSkills?: string[]
-): Promise<InterviewPrep> => {
-  try {
-    // Research company and role
-    const research = await researchCompanyAndRole(company, role)
-
-    // Generate questions
-    const questionsPrompt = `
-    Generate comprehensive interview questions for:
-    
-    Company: ${company}
-    Role: ${role}
-    Technologies: ${technologies.join(', ')}
-    ${userSkills ? `Candidate Skills: ${userSkills.join(', ')}` : ''}
-    
-    Generate 15-20 questions covering:
-    - Technical questions (coding, algorithms, system design)
-    - Behavioral questions (teamwork, problem-solving, past experiences)
-    - Role-specific questions
-    
-    For each question, provide:
-    - The question text
-    - Question type (technical, behavioral, or system design)
-    - Difficulty level (easy, medium, hard)
-    - Topic/category
-    - A model answer (comprehensive)
-    - 2-3 hints
-    
-    Respond in JSON format:
-    {
-      "questions": [
-        {
-          "question": "...",
-          "type": "technical|behavioral|system design",
-          "difficulty": "easy|medium|hard",
-          "topic": "...",
-          "modelAnswer": "...",
-          "hints": ["hint1", "hint2"]
-        }
-      ]
+    // Validate and sanitize response structure
+    if (!parsedData.companyResearchSummary) {
+      parsedData.companyResearchSummary = `Company research summary for ${company} - ${role} position.`
     }
     
-    Return ONLY valid JSON.
-    `
+    if (!parsedData.questions || !Array.isArray(parsedData.questions)) {
+      throw new Error('Invalid response structure from Gemini API: questions array is missing or invalid')
+    }
+    
+    // Filter out any invalid questions
+    parsedData.questions = parsedData.questions.filter(q => 
+      q && 
+      q.category && 
+      q.question && 
+      q.answer && 
+      q.reason
+    )
+    
+    if (parsedData.questions.length === 0) {
+      throw new Error('No valid questions generated by Gemini API')
+    }
 
-    const result = await geminiModel.generateContent(questionsPrompt)
-    const response = await result.response
-    let text = response.text()
+    // Ensure minimum question requirements
+    const technicalCount = parsedData.questions.filter(q => 
+      q.category.toLowerCase().includes('technical') || 
+      q.category.toLowerCase().includes('tech')
+    ).length
+    
+    const behavioralCount = parsedData.questions.filter(q => 
+      q.category.toLowerCase().includes('behavioral') || 
+      q.category.toLowerCase().includes('behavior')
+    ).length
 
-    // Clean up markdown code blocks if present
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim()
+    if (technicalCount < 6) {
+      console.warn(`Warning: Only ${technicalCount} technical questions generated, expected at least 6`)
+    }
 
-    const data = JSON.parse(text) as { questions: InterviewQuestion[] }
+    if (behavioralCount < 4) {
+      console.warn(`Warning: Only ${behavioralCount} behavioral questions generated, expected at least 4`)
+    }
 
     return {
       company,
       role,
       technologies,
-      questions: data.questions || [],
-      companyInfo: research.companyInfo,
-      roleRequirements: research.roleRequirements,
+      questions: parsedData.questions,
+      companyInfo: parsedData.companyResearchSummary,
+      roleRequirements: `Role requirements for ${role} at ${company}`,
     }
   } catch (error) {
     console.error('Error generating interview prep with Gemini:', error)
-    throw new Error(`Failed to generate interview prep: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    
+    // Provide detailed error information
+    if (error instanceof SyntaxError) {
+      throw new Error(`Failed to parse JSON response from Gemini API: ${error.message}`)
+    }
+    
+    if (error instanceof Error && error.message.includes('API key')) {
+      throw new Error('Invalid or missing Gemini API key')
+    }
+    
+    throw new Error(
+      `Failed to generate interview prep: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 }

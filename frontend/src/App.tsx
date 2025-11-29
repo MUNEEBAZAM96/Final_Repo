@@ -5,6 +5,7 @@ import Register from './components/Register'
 import Dashboard from './components/Dashboard'
 import ResumeUpload from './components/ResumeUpload'
 import JobMatches from './components/JobMatches'
+import JobSuggestions from './components/JobSuggestions'
 import InterviewPrep from './components/InterviewPrep'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -48,6 +49,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <JobMatches />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/jobs/suggestions"
+                  element={
+                    <ProtectedRoute>
+                      <JobSuggestions />
                     </ProtectedRoute>
                   }
                 />

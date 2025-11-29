@@ -1,21 +1,25 @@
 import { Router } from 'express'
 import {
   generateInterview,
+  generateRandomQuestions,
   getInterviewPreps,
   getInterviewPrep,
   updateQuestionProgress,
   recordPracticeSession,
   deleteInterviewPrep,
 } from '../Controllers/interview_controller.ts'
-import { authenticateToken } from '../Middleware/auth.ts'
+import { authenticateToken, optionalAuthenticate } from '../Middleware/auth.ts'
 
 const router = Router()
 
-// All routes require authentication
-router.use(authenticateToken)
+// Generate interview preparation (authentication optional - can use userId from body)
+router.post('/generate', optionalAuthenticate, generateInterview)
 
-// Generate interview preparation
-router.post('/generate', generateInterview)
+// Generate random questions from database
+router.post('/generate-random', authenticateToken, generateRandomQuestions)
+
+// All other routes require authentication
+router.use(authenticateToken)
 
 // Get all interview preparations
 router.get('/', getInterviewPreps)

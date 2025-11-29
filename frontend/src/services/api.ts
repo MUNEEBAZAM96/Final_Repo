@@ -98,6 +98,24 @@ export const jobsAPI = {
     return response.data
   },
 
+  getSuggestions: async (params?: {
+    role?: string
+    location?: string
+    technologies?: string
+    limit?: string
+  }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.role) queryParams.append('role', params.role)
+    if (params?.location) queryParams.append('location', params.location)
+    if (params?.technologies) queryParams.append('technologies', params.technologies)
+    if (params?.limit) queryParams.append('limit', params.limit)
+    
+    const queryString = queryParams.toString()
+    const url = `/jobs/suggestions${queryString ? `?${queryString}` : ''}`
+    const response = await api.get(url)
+    return response.data
+  },
+
   markAsApplied: async (id: string) => {
     const response = await api.patch(`/jobs/${id}/apply`)
     return response.data
@@ -112,6 +130,16 @@ export const interviewAPI = {
     technologies: string[]
   }) => {
     const response = await api.post('/interview/generate', data)
+    return response.data
+  },
+
+  generateRandom: async (data: {
+    companyName?: string
+    role?: string
+    technologies?: string[]
+    count?: number
+  }) => {
+    const response = await api.post('/interview/generate-random', data)
     return response.data
   },
 

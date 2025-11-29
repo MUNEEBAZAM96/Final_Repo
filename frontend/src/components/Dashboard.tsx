@@ -349,7 +349,7 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <div className="glass-card p-6 animate-fade-up" style={{ animationDelay: '600ms' }}>
           <h2 className="text-xl font-semibold text-white mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               to="/resume"
               className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-electric-400/30 transition-all group"
@@ -375,11 +375,27 @@ export default function Dashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-white group-hover:text-coral-400 transition-colors">
-                  Discover Jobs
+                  Job Matches
                 </h3>
-                <p className="text-sm text-surface-400">Find matching positions</p>
+                <p className="text-sm text-surface-400">AI-matched positions</p>
               </div>
               <ArrowRight className="w-5 h-5 text-surface-500 group-hover:text-coral-400 transition-all transform group-hover:translate-x-1" />
+            </Link>
+
+            <Link
+              to="/jobs/suggestions"
+              className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-electric-400/30 transition-all group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-electric-500/20 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-electric-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-white group-hover:text-electric-400 transition-colors">
+                  Job Suggestions
+                </h3>
+                <p className="text-sm text-surface-400">Jobs with extracted skills</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-surface-500 group-hover:text-electric-400 transition-all transform group-hover:translate-x-1" />
             </Link>
 
             <Link

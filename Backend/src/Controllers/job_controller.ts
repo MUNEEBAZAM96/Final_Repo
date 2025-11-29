@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import { ParsedResume, JobMatch, User } from '../db/models/index.ts'
 import { scrapeJobs } from '../services/jobScraper.ts'
 import { matchMultipleJobs } from '../services/jobMatcher.ts'
+import { extractSkillsFromJob, extractSkillsFromMultipleJobs } from '../services/jobSkillExtractor.ts'
 
 /**
  * Discover and match jobs for user
@@ -336,5 +337,183 @@ export const hideJob = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error hiding job:', error)
     res.status(500).json({ error: 'Failed to hide job' })
+  }
+}
+
+/**
+ * Get job suggestions with extracted skills
+ * GET /api/jobs/suggestions
+ * 
+ * Query Parameters:
+ * - role: Job role/title (e.g., "Backend Developer")
+ * - location: Job location (e.g., "India", "Remote")
+ * - technologies: Comma-separated technologies (e.g., "Node.js,MongoDB,Express")
+ * - limit: Number of jobs to return (default: 10, max: 50)
+ */
+export const getJobSuggestions = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    const { role, location, technologies, limit = '10' } = req.query
+
+    // Build search skills array
+    let searchSkills: string[] = []
+
+    // If technologies provided, use them
+    if (technologies && typeof technologies === 'string') {
+      searchSkills = technologies.split(',').map(t => t.trim()).filter(Boolean)
+    }
+
+    // If role provided, add it to search
+    if (role && typeof role === 'string') {
+      searchSkills.push(role)
+    }
+
+    // If no search criteria, try to get from user's resume
+    if (searchSkills.length === 0) {
+      const resumeData = await ParsedResume.findOne({ 
+        userId, 
+        isActive: true 
+      }).lean()
+
+      if (resumeData && resumeData.skills && resumeData.skills.length > 0) {
+        searchSkills = resumeData.skills.slice(0, 5) // Use top 5 skills
+      } else {
+        // Default fallback
+        searchSkills = ['software engineer', 'developer', 'programming']
+      }
+    }
+
+    // Scrape jobs
+    let jobs
+    try {
+      jobs = await scrapeJobs(searchSkills)
+    } catch (scrapeError) {
+      console.error('Error scraping jobs:', scrapeError)
+      // Return empty results instead of error
+      return res.status(200).json({
+        success: true,
+        message: 'No jobs found at the moment',
+        suggestions: [],
+        total: 0,
+      })
+    }
+
+    if (jobs.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No jobs found',
+        suggestions: [],
+        total: 0,
+      })
+    }
+
+    // Limit number of jobs to process (to avoid too many API calls)
+    const limitNum = Math.min(parseInt(limit as string, 10) || 10, 50)
+    const jobsToProcess = jobs.slice(0, limitNum)
+
+    // Extract skills from job descriptions
+    const jobsWithSkills = await Promise.allSettled(
+      jobsToProcess.map(async (job) => {
+        try {
+          const extractedSkills = await extractSkillsFromJob(
+            job.title,
+            job.company,
+            job.description
+          )
+
+          // Combine all skills into a single array for easy display
+          const allSkills = [
+            ...extractedSkills.requiredSkills,
+            ...extractedSkills.preferredSkills,
+            ...extractedSkills.technologies,
+            ...extractedSkills.frameworks,
+            ...extractedSkills.tools,
+            ...extractedSkills.languages,
+          ]
+
+          // Remove duplicates
+          const uniqueSkills = Array.from(new Set(allSkills.map(s => s.toLowerCase())))
+
+          return {
+            id: `${job.company}-${job.title}-${Date.now()}`,
+            job_title: job.title,
+            company: job.company,
+            location: job.location,
+            description: job.description.substring(0, 500), // Truncate for response
+            full_description: job.description,
+            url: job.url,
+            posted_date: job.postedDate,
+            salary: job.salary,
+            // Extracted skills
+            skills: {
+              required: extractedSkills.requiredSkills,
+              preferred: extractedSkills.preferredSkills,
+              technologies: extractedSkills.technologies,
+              frameworks: extractedSkills.frameworks,
+              tools: extractedSkills.tools,
+              languages: extractedSkills.languages,
+              certifications: extractedSkills.certifications || [],
+              all: uniqueSkills, // All unique skills combined
+            },
+            experience_level: extractedSkills.experienceLevel,
+            years_of_experience: extractedSkills.yearsOfExperience,
+          }
+        } catch (error) {
+          console.error(`Error processing job ${job.title} at ${job.company}:`, error)
+          // Return job without skills if extraction fails
+          return {
+            id: `${job.company}-${job.title}-${Date.now()}`,
+            job_title: job.title,
+            company: job.company,
+            location: job.location,
+            description: job.description.substring(0, 500),
+            full_description: job.description,
+            url: job.url,
+            posted_date: job.postedDate,
+            salary: job.salary,
+            skills: {
+              required: [],
+              preferred: [],
+              technologies: [],
+              frameworks: [],
+              tools: [],
+              languages: [],
+              certifications: [],
+              all: [],
+            },
+            experience_level: undefined,
+            years_of_experience: undefined,
+          }
+        }
+      })
+    )
+
+    // Filter out failed promises and extract values
+    const suggestions = jobsWithSkills
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => (result as PromiseFulfilledResult<any>).value)
+
+    res.status(200).json({
+      success: true,
+      message: `Found ${suggestions.length} job suggestions with skills`,
+      suggestions,
+      total: suggestions.length,
+      search_criteria: {
+        role: role || 'Not specified',
+        location: location || 'Not specified',
+        technologies: searchSkills,
+      },
+    })
+  } catch (error) {
+    console.error('Error getting job suggestions:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get job suggestions',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    })
   }
 }
