@@ -1,251 +1,318 @@
-# AI-Powered Resume Parser, Job Matcher & Interview Prep
+M Dawood Javed 23i-3038
+Muneeb Ur Rehman 23i-0100
+M Hashir 23i-3047
+Uzair Majeed 23i-3063
 
-A comprehensive career preparation platform that uses AI to parse resumes, match jobs, and generate personalized interview questions.
+AI-Powered Resume Parser, Job Matcher & Interview Preparation Platform
+A complete full-stack AI-powered application that analyzes resumes, extracts structured information, matches them to jobs, and generates interview questions using Gemini Pro.
 
-## 🚀 Features
+ Features
+ 1. AI Resume Parsing
+Upload PDF resumes
 
-- **Resume Parsing**: Upload PDF resumes and extract structured data using GPT-4o
-- **Job Discovery**: Automatically discover and match jobs based on your skills
-- **AI-Powered Matching**: Get match scores and explanations for each job
-- **Interview Preparation**: Generate personalized interview questions based on company, role, and technologies
-- **Dashboard Analytics**: View your skills, job matches, and preparation progress
 
-## 🛠️ Tech Stack
+Stored securely in Cloudinary
 
-### Frontend
-- React + Vite
-- Tailwind CSS
-- Recharts (for analytics)
-- React Router
 
-### Backend
-- Node.js + Express
-- TypeScript
-- Supabase (PostgreSQL + Auth + Storage)
-- OpenAI GPT-4o
-- pdf-parse (for PDF parsing)
-- Puppeteer (for web scraping - optional)
+Extract text using pdf-parse
 
-## 📋 Prerequisites
 
-- Node.js 18+ and npm
-- Supabase account (free tier works)
-- OpenAI API key
-- (Optional) SerpAPI key for job scraping
+Send extracted text to Gemini Pro
 
-## 🔧 Setup Instructions
 
-### 1. Supabase Setup
+Get structured fields:
 
-1. Create a new Supabase project at https://supabase.com
-2. Go to SQL Editor and run the SQL from `Backend/SUPABASE_SETUP.sql`
-3. Go to Storage and create a bucket named `resumes` (public: true)
-4. Get your Supabase URL and keys from Settings > API
 
-### 2. Backend Setup
+Name
 
-```bash
-cd Backend
-npm install
-```
 
-Create a `.env` file:
+Skills
 
-```env
-APP_STAGE=dev
-PORT=3000
 
-# Supabase
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-SUPABASE_ANON_KEY=your_anon_key
+Experience
 
-# OpenAI
-OPENAI_API_KEY=your_openai_api_key
 
-# Optional: SerpAPI for job scraping
-SERPAPI_KEY=your_serpapi_key
+Education
 
-# Frontend URL
-FRONTEND_URL=http://localhost:5173
-```
 
-Run the backend:
+Projects
 
-```bash
-npm run dev
-```
 
-### 3. Frontend Setup
+Summary
 
-```bash
-cd frontend
-npm install
-```
 
-Create a `.env` file:
+Save parsed results in MongoDB
 
-```env
-VITE_API_URL=http://localhost:3000/api
-```
 
-Run the frontend:
 
-```bash
-npm run dev
-```
+ 3. Interview Preparation
+Enter a job role + company + technologies
 
-## 📁 Project Structure
 
-```
+Gemini Pro generates:
+
+
+Behavioral questions
+
+
+Technical questions
+
+
+System design questions
+
+
+Suggested answers
+
+
+Hints and tips
+
+
+Stored in MongoDB for later review
+
+
+
+ 4. Dashboard Analytics
+Skill visualization
+
+
+Job match history
+
+
+Interview prep library
+
+
+Resume progress tracking
+
+
+
+5. Authentication
+JWT-based Auth
+
+
+Password hashing using bcrypt
+
+
+Protected routes (Bearer token)
+
+
+
+Tech Stack
+Frontend
+React
+
+
+Backend
+Node.js + Express
+
+
+TypeScript
+
+
+MongoDB (Mongoose)
+
+
+Cloudinary (file uploads)
+
+
+Gemini Pro API
+
+
+pdf-parse
+
+
+bcrypt
+
+
+jsonwebtoken
+
+
+
+📁 Folder Structure
+project-root/
+│
 ├── Backend/
 │   ├── src/
-│   │   ├── Controllers/      # Route controllers
-│   │   ├── services/         # Business logic (AI, parsing, etc.)
-│   │   ├── Router/           # Express routes
-│   │   ├── Middleware/      # Auth, validation, etc.
-│   │   └── utils/            # Utilities (Supabase client, etc.)
-│   └── SUPABASE_SETUP.sql    # Database setup SQL
+│   │   ├── Controllers/
+│   │   ├── Router/
+│   │   ├── services/
+│   │   ├── Middleware/
+│   │   └── utils/
+│   └── server.ts
+│
 ├── frontend/
 │   ├── src/
-│   │   ├── components/       # React components
-│   │   ├── contexts/         # React contexts (Auth)
-│   │   └── services/         # API service layer
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   └── services/
 │   └── ...
+│
 └── README.md
-```
-
-## 🎯 API Endpoints
-
-### Auth
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login
-- `GET /api/auth/me` - Get current user
-
-### Resume
-- `POST /api/resume/upload` - Upload and parse resume (PDF)
-- `GET /api/resume` - Get user's parsed resume
-
-### Jobs
-- `POST /api/jobs/discover` - Discover and match jobs
-- `GET /api/jobs/matches` - Get user's job matches
-- `PATCH /api/jobs/:id/apply` - Mark job as applied
-
-### Interview
-- `POST /api/interview/generate` - Generate interview prep
-- `GET /api/interview` - Get all interview preps
-- `GET /api/interview/:id` - Get specific interview prep
-
-## 🔐 Authentication
-
-The app uses Supabase Auth with JWT tokens. Tokens are stored in localStorage and sent with each request via the `Authorization: Bearer <token>` header.
-
-## 📝 Environment Variables
-
-### Backend (.env)
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (for admin operations)
-- `SUPABASE_ANON_KEY` - Supabase anonymous key
-- `OPENAI_API_KEY` - Your OpenAI API key
-- `SERPAPI_KEY` - (Optional) SerpAPI key for job scraping
-- `FRONTEND_URL` - Frontend URL for CORS
-
-### Frontend (.env)
-- `VITE_API_URL` - Backend API URL
-
-## 🚢 Deployment
-
-### Backend
-Deploy to Render, Railway, or any Node.js hosting:
-1. Set environment variables
-2. Run `npm start`
-
-### Frontend
-Deploy to Vercel:
-1. Connect your GitHub repo
-2. Set `VITE_API_URL` environment variable
-3. Deploy
-
-### Supabase
-Already hosted - no deployment needed!
-
-## 📊 Database Schema
-
-- `profiles` - User profiles
-- `parsed_resumes` - Parsed resume data
-- `job_matches` - Job matches with scores
-- `interview_preps` - Generated interview preparations
-
-See `Backend/SUPABASE_SETUP.sql` for full schema.
-
-## 🎨 Features in Detail
-
-### Resume Parsing
-- Upload PDF resume
-- Extract text using pdf-parse
-- Use GPT-4o with function calling to structure data
-- Store skills, experience, education, etc.
-
-### Job Matching
-- Scrape jobs using SerpAPI (or Puppeteer fallback)
-- Match jobs with user's skills using GPT-4o
-- Calculate match scores (0-100)
-- Provide explanations for matches
-
-### Interview Prep
-- Research company and role
-- Generate technical, behavioral, and system design questions
-- Provide model answers and hints
-- Tailored to specific technologies
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## 📄 License
-
-ISC
-
-## 🙏 Acknowledgments
-
-- OpenAI for GPT-4o
-- Supabase for backend infrastructure
-- The open-source community
 
 
+ Backend Setup
+1️⃣ Install dependencies
+cd Backend
+npm install
 
+2️⃣ Create .env inside Backend/
+# MongoDB
+MONGODB_URI=mongodb+srv://...
 
-
-
-frontend/.env 
-
-VITE_API_URL=http://localhost:3000/api
-
-
-
-Backend/.env
-
-# MongoDB Configuration
-MONGODB_URI=mongodb+srv://Muneeb:BT05LlGZPPvzTbl9@cluster0.jhtmzqx.mongodb.net/Resume_Builder_Schema?retryWrites=true&w=majority&appName=Cluster0
-
-# JWT Configuration
-JWT_SECRET= KAJSDFBKJBASASLKDNF
+# JWT
+JWT_SECRET=KAJSDFBKJBASASLKDNF
 JWT_EXPIRES_IN=7d
 
-# Server Configuration
+# Server
 PORT=3000
 NODE_ENV=development
 
-# Bcrypt Configuration
+# Bcrypt
 BCRYPT_ROUNDS=12
 
-# Cloudinary Configuration
+# Cloudinary
 CLOUDINARY_CLOUD_NAME=dibgebv9u
 CLOUDINARY_API_KEY=887232855367279
 CLOUDINARY_API_SECRET=xZy36_ZEzqgUnJ2PaS5PcqL4bUM
 
+# Gemini API
+GEMINI_API_KEY=AIzaSyAn...
 
-GEMINI_API_KEY = AIzaSyAnXS9jqn0oksw3WUgWm0dc6UEmayTjzeQ
+3️⃣ Run backend
+npm run dev
+
+
+ Frontend Setup
+cd frontend
+npm install
+
+Create frontend/.env
+VITE_API_URL=http://localhost:3000/api
+
+Run the app:
+npm run dev
+
+
+ API Endpoints
+Auth
+Method
+Route
+Description
+POST
+/api/auth/register
+Register user
+POST
+/api/auth/login
+Login
+GET
+/api/auth/me
+Get user info
+
+
+Resume
+Method
+Route
+Description
+POST
+/api/resume/upload
+Upload PDF → parse → save
+GET
+/api/resume
+Get user's parsed resume
+
+
+Jobs
+Method
+Route
+Description
+POST
+/api/jobs/match
+AI job matching
+GET
+/api/jobs/matches
+Get saved matches
+PATCH
+/api/jobs/:id/apply
+Mark job as applied
+
+
+Interview
+Method
+Route
+Description
+POST
+/api/interview/generate
+Get interview questions
+GET
+/api/interview
+List saved interview preps
+GET
+/api/interview/:id
+View one prep
+
+
+Database (MongoDB)
+Collections:
+users
+
+
+resumes
+
+
+job_matches
+
+
+interviews
+
+
+Each user maintains their own resume, matches, and interview history.
+
+Cloudinary Flow
+User uploads PDF
+
+
+File stored in Cloudinary
+
+
+URL passed to backend
+
+
+Backend downloads file → extracts text → sends to Gemini Pro
+
+
+Parsed result saved in MongoDB
+
+
+
+Gemini Pro Usage
+Used for:
+Resume parsing
+
+
+Job matching
+
+
+Interview question generation
+
+
+Models:
+gemini-1.5-pro recommended
+
+
+
+Deployment
+Backend
+Deploy on:
+Render
+
+
+Railway
+
+
+DigitalOcean
+
+
+Frontend 
+react
+MongoDB
+Use MongoDB Atlas (cloud-hosted).
+
