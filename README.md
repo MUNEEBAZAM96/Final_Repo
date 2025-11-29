@@ -1,3 +1,8 @@
+M Dawood Javed 23i-3038
+Muneeb Ur Rehman 23i-0100
+M Hashir 23i-3047
+Uzair Majeed 23i-3063
+
 AI-Powered Resume Parser, Job Matcher & Interview Preparation Platform
 A complete full-stack AI-powered application that analyzes resumes, extracts structured information, matches them to jobs, and generates interview questions using Gemini Pro.
 
