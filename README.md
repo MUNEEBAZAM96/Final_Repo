@@ -215,3 +215,37 @@ ISC
 - Supabase for backend infrastructure
 - The open-source community
 
+
+
+
+
+
+frontend/.env 
+
+VITE_API_URL=http://localhost:3000/api
+
+
+
+Backend/.env
+
+# MongoDB Configuration
+MONGODB_URI=mongodb+srv://Muneeb:BT05LlGZPPvzTbl9@cluster0.jhtmzqx.mongodb.net/Resume_Builder_Schema?retryWrites=true&w=majority&appName=Cluster0
+
+# JWT Configuration
+JWT_SECRET= KAJSDFBKJBASASLKDNF
+JWT_EXPIRES_IN=7d
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+
+# Bcrypt Configuration
+BCRYPT_ROUNDS=12
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=dibgebv9u
+CLOUDINARY_API_KEY=887232855367279
+CLOUDINARY_API_SECRET=xZy36_ZEzqgUnJ2PaS5PcqL4bUM
+
+
+GEMINI_API_KEY = AIzaSyAnXS9jqn0oksw3WUgWm0dc6UEmayTjzeQ
